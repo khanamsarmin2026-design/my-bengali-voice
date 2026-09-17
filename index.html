@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Bengali Voice</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans Bengali",sans-serif;background:#f5f7fb;color:#172033}
+.wrap{max-width:900px;margin:0 auto;padding:28px 18px}.brand{font-size:26px;font-weight:800}.sub{color:#697386;margin-top:5px}
+.card{margin-top:24px;background:white;border:1px solid #e5e9f0;border-radius:20px;padding:20px;box-shadow:0 8px 30px #17203310}
+textarea{width:100%;min-height:280px;border:1px solid #d9dee8;border-radius:14px;padding:18px;font-size:18px;line-height:1.7;resize:vertical;outline:none}
+textarea:focus{border-color:#6b63ff;box-shadow:0 0 0 3px #6b63ff18}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap}
+button{border:0;border-radius:12px;padding:13px 20px;font-size:16px;font-weight:700;cursor:pointer;background:#111827;color:#fff}
+button:disabled{opacity:.55;cursor:not-allowed}.secondary{background:#eef1f6;color:#172033}
+#status{color:#697386}.player{margin-top:20px;display:none}.player audio{width:100%}
+.badge{display:inline-block;background:#eef0ff;color:#5148d8;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:700}
+.small{font-size:13px;color:#7b8494;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">🎙️ My Bengali Voice</div>
+  <div class="sub">আপনার নিজের voice দিয়ে বাংলা Text-to-Speech</div>
+
+  <div class="card">
+    <span class="badge">Private Voice</span>
+    <h2>বাংলা টেক্সট লিখুন</h2>
+    <textarea id="text" placeholder="যেমন: সকালটা আজ একটু অন্যরকম... চারপাশটা নরম এক চাদরে ঢাকা।"></textarea>
+    <div class="row">
+      <span id="status">প্রস্তুত</span>
+      <div>
+        <button class="secondary" id="clear">Clear</button>
+        <button id="generate">🔊 Generate Voice</button>
+      </div>
+    </div>
+    <div class="player" id="player">
+      <audio id="audio" controls></audio>
+      <div class="row">
+        <span>আপনার voice প্রস্তুত।</span>
+        <a id="download" download="my-bengali-voice.wav"><button>⬇ Download WAV</button></a>
+      </div>
+    </div>
+    <div class="small">Voice ID: private • API key browser-এ প্রকাশ করা হয় না</div>
+  </div>
+</div>
+<script>
+const text = document.getElementById("text");
+const generate = document.getElementById("generate");
+const status = document.getElementById("status");
+const player = document.getElementById("player");
+const audio = document.getElementById("audio");
+const download = document.getElementById("download");
+document.getElementById("clear").onclick=()=>{text.value="";player.style.display="none";status.textContent="প্রস্তুত"};
+generate.onclick=async()=>{
+  const value=text.value.trim();
+  if(!value){status.textContent="আগে বাংলা টেক্সট লিখুন।";return}
+  generate.disabled=true; status.textContent="Voice তৈরি হচ্ছে...";
+  player.style.display="none";
+  try{
+    const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:value})});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error || "Generation failed");
+    audio.src=data.audio; download.href=data.audio; player.style.display="block"; status.textContent="Voice তৈরি হয়েছে ✓";
+  }catch(e){status.textContent=e.message}
+  finally{generate.disabled=false}
+};
+</script>
+</body>
+</html>
